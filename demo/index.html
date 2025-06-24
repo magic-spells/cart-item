@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart Item Demo</title>
+    <link rel="stylesheet" href="cart-item.min.css" />
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        line-height: 1.6;
+        background: #f8f9fa;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 2rem;
+      }
+
+      .cart-container {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Demo styling for cart items */
+      cart-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+      }
+
+      cart-item-content {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1rem;
+        padding: 1rem;
+        align-items: start;
+      }
+
+      .item-image {
+        width: 60px;
+        height: 60px;
+        background: blue;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+
+      .item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .item-name {
+        font-weight: 600;
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .item-price {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin: 0;
+      }
+
+      .item-quantity {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .quantity-label {
+        font-size: 0.9rem;
+        color: #495057;
+      }
+
+      .quantity-input {
+        width: 60px;
+        padding: 0.25rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        text-align: center;
+      }
+
+      .item-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        min-height: 60px;
+      }
+
+      .remove-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        align-self: flex-end;
+      }
+
+      .remove-btn:hover {
+        background: #c82333;
+      }
+
+      .item-total {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 1rem;
+        margin: 0;
+      }
+
+      /* Custom processing overlay */
+      cart-item-processing {
+        border-radius: 6px;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .demo-controls {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-controls button {
+        margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid #007bff;
+        background: #007bff;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .demo-controls button:hover {
+        background: #0056b3;
+      }
+
+      .demo-controls button.secondary {
+        background: white;
+        color: #007bff;
+      }
+
+      .demo-controls button.secondary:hover {
+        background: #f8f9fa;
+      }
+
+      cart-item[data-state='destroying'] cart-item-processing {
+        background: black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Cart Item Component Demo</h1>
+
+    <div class="demo-controls">
+      <h3>Demo Controls</h3>
+      <button onclick="simulateProcessing()">Simulate AJAX Processing</button>
+      <button onclick="simulateDestroy()" class="secondary">Destroy First Item</button>
+      <button onclick="resetItems()" class="secondary">Reset All Items</button>
+    </div>
+
+    <div class="cart-container">
+      <h3>Shopping Cart</h3>
+
+      <cart-item data-key="item-1">
+        <cart-item-content>
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h4 class="item-name">Awesome T-Shirt</h4>
+            <div class="item-price">$29.99 each</div>
+            <div class="item-quantity">
+              <span class="quantity-label">Qty:</span>
+              <input type="number" class="quantity-input" data-cart-quantity value="1" min="1" />
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="remove-btn" data-action="remove">Remove</button>
+            <div class="item-total">$29.99</div>
+          </div>
+        </cart-item-content>
+        <cart-item-processing>
+          <div class="spinner"></div>
+        </cart-item-processing>
+      </cart-item>
+
+      <cart-item data-key="item-2">
+        <cart-item-content>
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h4 class="item-name">Cool Hoodie</h4>
+            <div class="item-price">$59.99 each</div>
+            <div class="item-quantity">
+              <span class="quantity-label">Qty:</span>
+              <input type="number" class="quantity-input" data-cart-quantity value="2" min="1" />
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="remove-btn" data-action="remove">Remove</button>
+            <div class="item-total">$119.98</div>
+          </div>
+        </cart-item-content>
+        <cart-item-processing>
+          <div class="spinner"></div>
+        </cart-item-processing>
+      </cart-item>
+
+      <cart-item data-key="item-3">
+        <cart-item-content>
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h4 class="item-name">Stylish Jeans</h4>
+            <div class="item-price">$79.99 each</div>
+            <div class="item-quantity">
+              <span class="quantity-label">Qty:</span>
+              <input type="number" class="quantity-input" data-cart-quantity value="1" min="1" />
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="remove-btn" data-action="remove">Remove</button>
+            <div class="item-total">$79.99</div>
+          </div>
+        </cart-item-content>
+        <cart-item-processing>
+          <div class="spinner"></div>
+        </cart-item-processing>
+      </cart-item>
+    </div>
+
+    <script type="module" src="cart-item.esm.js"></script>
+    <script>
+      // Demo functionality - simulates cart-panel behavior
+      document.addEventListener('DOMContentLoaded', function () {
+        // Listen for cart item events (simulating what cart-panel would do)
+        document.addEventListener('cart-item:remove', function (e) {
+          console.log('🗑️ Remove item requested:', e.detail.cartKey);
+          handleItemRemoval(e.detail.element);
+        });
+
+        document.addEventListener('cart-item:quantity-change', function (e) {
+          console.log(
+            '🔢 Quantity changed for item:',
+            e.detail.cartKey,
+            'new quantity:',
+            e.detail.quantity
+          );
+          handleQuantityChange(e.detail.element, e.detail.quantity);
+        });
+      });
+
+      function handleItemRemoval(cartItem) {
+        console.log('⏳ Setting item to processing state...');
+
+        // 1. Set item to processing state immediately
+        cartItem.setAttribute('data-state', 'processing');
+
+        // 2. Simulate AJAX call to Shopify cart API
+        setTimeout(() => {
+          console.log('✅ AJAX response received - item should be removed');
+
+          // 3. Tell the item to destroy itself with animation
+          cartItem.destroyYourself();
+
+          console.log('🎬 Destroy animation started');
+        }, 2000); // 2 second delay to simulate network request
+      }
+
+      function handleQuantityChange(cartItem, newQuantity) {
+        console.log('🔢 Quantity changed - no processing state needed for demo');
+        console.log('✅ In real implementation, cart-panel would handle AJAX and state management');
+        
+        // In the demo, we'll just log the change without visual state changes
+        // Real implementation would let cart-panel decide whether to show processing state
+      }
+
+      // Demo control functions
+      function simulateProcessing() {
+        console.log('🎭 Demo: Setting all items to processing state');
+        const items = document.querySelectorAll('cart-item');
+        items.forEach((item) => {
+          item.setAttribute('data-state', 'processing');
+          setTimeout(() => {
+            item.setAttribute('data-state', 'ready');
+          }, 4000);
+        });
+      }
+
+      function simulateDestroy() {
+        console.log('🎭 Demo: Destroying first item');
+        const firstItem = document.querySelector('cart-item');
+        if (firstItem) {
+          firstItem.destroyYourself();
+        }
+      }
+
+      function resetItems() {
+        console.log('🎭 Demo: Resetting all items and re-adding deleted items');
+
+        // Reset existing items to ready state
+        const items = document.querySelectorAll('cart-item');
+        items.forEach((item) => {
+          item.setAttribute('data-state', 'ready');
+        });
+
+        // Re-add deleted items if they're missing
+        const cartContainer = document.querySelector('.cart-container');
+        const existingKeys = Array.from(items).map((item) => item.getAttribute('data-key'));
+
+        // Check for missing items and re-add them
+        const allItems = [
+          {
+            key: 'item-1',
+            name: 'Awesome T-Shirt',
+            price: '$29.99 each',
+            quantity: 1,
+            total: '$29.99',
+          },
+          {
+            key: 'item-2',
+            name: 'Cool Hoodie',
+            price: '$59.99 each',
+            quantity: 2,
+            total: '$119.98',
+          },
+          {
+            key: 'item-3',
+            name: 'Stylish Jeans',
+            price: '$79.99 each',
+            quantity: 1,
+            total: '$79.99',
+          },
+        ];
+
+        allItems.forEach((itemData) => {
+          if (!existingKeys.includes(itemData.key)) {
+            console.log(`📦 Re-adding deleted item: ${itemData.name}`);
+
+            const cartItem = document.createElement('cart-item');
+            cartItem.setAttribute('data-key', itemData.key);
+
+            cartItem.innerHTML = `
+              <cart-item-content>
+                <div class="item-image"></div>
+                <div class="item-details">
+                  <h4 class="item-name">${itemData.name}</h4>
+                  <div class="item-price">${itemData.price}</div>
+                  <div class="item-quantity">
+                    <span class="quantity-label">Qty:</span>
+                    <input type="number" class="quantity-input" data-cart-quantity value="${itemData.quantity}" min="1" />
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button class="remove-btn" data-action="remove">Remove</button>
+                  <div class="item-total">${itemData.total}</div>
+                </div>
+              </cart-item-content>
+              <cart-item-processing>
+                <div class="spinner"></div>
+              </cart-item-processing>
+            `;
+
+            cartContainer.appendChild(cartItem);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
