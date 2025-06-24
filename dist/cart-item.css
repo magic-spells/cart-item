@@ -99,5 +99,3 @@ cart-item-processing {
   transition: opacity var(--cart-item-processing-duration) ease-out, visibility var(--cart-item-processing-duration) ease-out;
   z-index: 10;
 }
-
-/*# sourceMappingURL=true */
