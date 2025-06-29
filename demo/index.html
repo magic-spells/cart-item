@@ -129,24 +129,6 @@
         border-radius: 6px;
       }
 
-      .spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid #f3f3f3;
-        border-top: 2px solid #007bff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
       .demo-controls {
         margin-bottom: 2rem;
         padding: 1rem;
@@ -178,7 +160,7 @@
         background: #f8f9fa;
       }
 
-      cart-item[data-state='destroying'] cart-item-processing {
+      cart-item[state='destroying'] cart-item-processing {
         background: black;
       }
     </style>
@@ -191,12 +173,15 @@
       <button onclick="simulateProcessing()">Simulate AJAX Processing</button>
       <button onclick="simulateDestroy()" class="secondary">Destroy First Item</button>
       <button onclick="resetItems()" class="secondary">Reset All Items</button>
+      <button onclick="addTemplatedItem()" style="background: #28a745; border-color: #28a745">
+        Add Templated Item
+      </button>
     </div>
 
     <div class="cart-container">
       <h3>Shopping Cart</h3>
 
-      <cart-item data-key="item-1">
+      <cart-item key="item-1">
         <cart-item-content>
           <div class="item-image"></div>
           <div class="item-details">
@@ -208,16 +193,16 @@
             </div>
           </div>
           <div class="item-actions">
-            <button class="remove-btn" data-action="remove">Remove</button>
+            <button class="remove-btn" data-action-remove-item>Remove</button>
             <div class="item-total">$29.99</div>
           </div>
         </cart-item-content>
         <cart-item-processing>
-          <div class="spinner"></div>
+          <div class="cart-item-loader"></div>
         </cart-item-processing>
       </cart-item>
 
-      <cart-item data-key="item-2">
+      <cart-item key="item-2">
         <cart-item-content>
           <div class="item-image"></div>
           <div class="item-details">
@@ -229,16 +214,16 @@
             </div>
           </div>
           <div class="item-actions">
-            <button class="remove-btn" data-action="remove">Remove</button>
+            <button class="remove-btn" data-action-remove-item>Remove</button>
             <div class="item-total">$119.98</div>
           </div>
         </cart-item-content>
         <cart-item-processing>
-          <div class="spinner"></div>
+          <div class="cart-item-loader"></div>
         </cart-item-processing>
       </cart-item>
 
-      <cart-item data-key="item-3">
+      <cart-item key="item-3">
         <cart-item-content>
           <div class="item-image"></div>
           <div class="item-details">
@@ -250,17 +235,42 @@
             </div>
           </div>
           <div class="item-actions">
-            <button class="remove-btn" data-action="remove">Remove</button>
+            <button class="remove-btn" data-action-remove-item>Remove</button>
             <div class="item-total">$79.99</div>
           </div>
         </cart-item-content>
         <cart-item-processing>
-          <div class="spinner"></div>
+          <div class="cart-item-loader"></div>
         </cart-item-processing>
       </cart-item>
     </div>
 
     <script type="module" src="cart-item.esm.js"></script>
+    <script type="module">
+      import { CartItem } from './cart-item.esm.js';
+
+      // Set up template for client-side rendering
+      CartItem.setTemplate((item) => {
+        return `
+          <div class="item-image"></div>
+          <div class="item-details">
+            <h4 class="item-name">${item.product_title}</h4>
+            <div class="item-price">$${(item.line_price / 100).toFixed(2)} each</div>
+            <div class="item-quantity">
+              <span class="quantity-label">Qty:</span>
+              <input type="number" class="quantity-input" data-cart-quantity value="${item.quantity}" min="1" />
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="remove-btn" data-action-remove-item>Remove</button>
+            <div class="item-total">$${((item.line_price * item.quantity) / 100).toFixed(2)}</div>
+          </div>
+        `;
+      });
+
+      // Make CartItem available globally for demo functions
+      window.CartItem = CartItem;
+    </script>
     <script>
       // Demo functionality - simulates cart-panel behavior
       document.addEventListener('DOMContentLoaded', function () {
@@ -285,7 +295,7 @@
         console.log('⏳ Setting item to processing state...');
 
         // 1. Set item to processing state immediately
-        cartItem.setAttribute('data-state', 'processing');
+        cartItem.setState('processing');
 
         // 2. Simulate AJAX call to Shopify cart API
         setTimeout(() => {
@@ -301,7 +311,7 @@
       function handleQuantityChange(cartItem, newQuantity) {
         console.log('🔢 Quantity changed - no processing state needed for demo');
         console.log('✅ In real implementation, cart-panel would handle AJAX and state management');
-        
+
         // In the demo, we'll just log the change without visual state changes
         // Real implementation would let cart-panel decide whether to show processing state
       }
@@ -311,9 +321,9 @@
         console.log('🎭 Demo: Setting all items to processing state');
         const items = document.querySelectorAll('cart-item');
         items.forEach((item) => {
-          item.setAttribute('data-state', 'processing');
+          item.setState('processing');
           setTimeout(() => {
-            item.setAttribute('data-state', 'ready');
+            item.setState('ready');
           }, 4000);
         });
       }
@@ -332,12 +342,12 @@
         // Reset existing items to ready state
         const items = document.querySelectorAll('cart-item');
         items.forEach((item) => {
-          item.setAttribute('data-state', 'ready');
+          item.setState('ready');
         });
 
         // Re-add deleted items if they're missing
         const cartContainer = document.querySelector('.cart-container');
-        const existingKeys = Array.from(items).map((item) => item.getAttribute('data-key'));
+        const existingKeys = Array.from(items).map((item) => item.getAttribute('key'));
 
         // Check for missing items and re-add them
         const allItems = [
@@ -369,7 +379,7 @@
             console.log(`📦 Re-adding deleted item: ${itemData.name}`);
 
             const cartItem = document.createElement('cart-item');
-            cartItem.setAttribute('data-key', itemData.key);
+            cartItem.setAttribute('key', itemData.key);
 
             cartItem.innerHTML = `
               <cart-item-content>
@@ -383,18 +393,38 @@
                   </div>
                 </div>
                 <div class="item-actions">
-                  <button class="remove-btn" data-action="remove">Remove</button>
+                  <button class="remove-btn" data-action-remove-item>Remove</button>
                   <div class="item-total">${itemData.total}</div>
                 </div>
               </cart-item-content>
               <cart-item-processing>
-                <div class="spinner"></div>
+                <div class="cart-item-loader"></div>
               </cart-item-processing>
             `;
 
             cartContainer.appendChild(cartItem);
           }
         });
+      }
+
+      // New function to demonstrate template-based item creation
+      function addTemplatedItem() {
+        console.log('🎭 Demo: Adding new templated item');
+
+        const sampleData = {
+          key: `templated-${Date.now()}`,
+          id: `templated-${Date.now()}`,
+          product_title: 'Templated Product',
+          variant_title: 'Generated from Template',
+          quantity: 1,
+          line_price: 3999, // $39.99 in cents
+          featured_image: null,
+          url: '/products/templated',
+        };
+
+        const cartContainer = document.querySelector('.cart-container');
+        const newItem = new CartItem(sampleData);
+        cartContainer.appendChild(newItem);
       }
     </script>
   </body>

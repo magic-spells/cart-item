@@ -1,15 +1,19 @@
 // SCSS Variables (can be overridden before import)
 $cart-item-processing-duration: 250ms !default;
 $cart-item-destroying-duration: 600ms !default;
+$cart-item-appearing-duration: 400ms !default;
 $cart-item-shadow-color: rgba(0, 0, 0, 0.15) !default;
 $cart-item-shadow-color-strong: rgba(0, 0, 0, 0.5) !default;
 $cart-item-processing-bg: rgba(100, 100, 100, 0.2) !default;
 $cart-item-destroying-bg: rgba(0, 0, 0, 0.1) !default;
 $cart-item-processing-scale: 0.98 !default;
 $cart-item-destroying-scale: 0.85 !default;
+$cart-item-appearing-scale: 0.9 !default;
 $cart-item-processing-blur: 1px !default;
 $cart-item-destroying-blur: 10px !default;
+$cart-item-appearing-blur: 2px !default;
 $cart-item-destroying-opacity: 0.2 !default;
+$cart-item-appearing-opacity: 0.5 !default;
 $cart-item-destroying-brightness: 0.6 !default;
 $cart-item-destroying-saturate: 0.3 !default;
 
@@ -18,15 +22,19 @@ cart-item {
   // CSS Custom Properties for customization (mapped from SCSS variables)
   --cart-item-processing-duration: #{$cart-item-processing-duration};
   --cart-item-destroying-duration: #{$cart-item-destroying-duration};
+  --cart-item-appearing-duration: #{$cart-item-appearing-duration};
   --cart-item-shadow-color: #{$cart-item-shadow-color};
   --cart-item-shadow-color-strong: #{$cart-item-shadow-color-strong};
   --cart-item-processing-bg: #{$cart-item-processing-bg};
   --cart-item-destroying-bg: #{$cart-item-destroying-bg};
   --cart-item-processing-scale: #{$cart-item-processing-scale};
   --cart-item-destroying-scale: #{$cart-item-destroying-scale};
+  --cart-item-appearing-scale: #{$cart-item-appearing-scale};
   --cart-item-processing-blur: #{$cart-item-processing-blur};
   --cart-item-destroying-blur: #{$cart-item-destroying-blur};
+  --cart-item-appearing-blur: #{$cart-item-appearing-blur};
   --cart-item-destroying-opacity: #{$cart-item-destroying-opacity};
+  --cart-item-appearing-opacity: #{$cart-item-appearing-opacity};
   --cart-item-destroying-brightness: #{$cart-item-destroying-brightness};
   --cart-item-destroying-saturate: #{$cart-item-destroying-saturate};
 
@@ -56,7 +64,7 @@ cart-item {
   }
 
   // Ready state (default)
-  &[data-state='ready'] {
+  &[state='ready'] {
     cart-item-content {
       transform: scale(1);
       filter: blur(0px);
@@ -70,7 +78,7 @@ cart-item {
   }
 
   // Processing state - content slightly scaled and blurred, processing overlay visible
-  &[data-state='processing'] {
+  &[state='processing'] {
     box-shadow: inset 0px 2px 10px var(--cart-item-shadow-color);
 
     &::after {
@@ -91,7 +99,7 @@ cart-item {
   }
 
   // Destroying state - heavy effects on content, darker background
-  &[data-state='destroying'] {
+  &[state='destroying'] {
     background-color: var(--cart-item-destroying-bg);
     box-shadow: inset 0px 4px 20px var(--cart-item-shadow-color-strong);
     margin-top: 0px;
@@ -124,6 +132,31 @@ cart-item {
       transition: opacity var(--cart-item-processing-duration) ease;
     }
   }
+
+  // Appearing state - reverse of destroying for smooth entry animation
+  &[state='appearing'] {
+    height: 0px;
+    overflow: hidden;
+    transition:
+      height var(--cart-item-appearing-duration) ease-out,
+      filter var(--cart-item-appearing-duration) ease-out,
+      opacity var(--cart-item-appearing-duration) ease-out;
+
+    cart-item-content {
+      transform: scale(var(--cart-item-appearing-scale));
+      filter: blur(var(--cart-item-appearing-blur));
+      opacity: var(--cart-item-appearing-opacity);
+      transition:
+        transform var(--cart-item-appearing-duration) ease-out,
+        filter var(--cart-item-appearing-duration) ease-out,
+        opacity var(--cart-item-appearing-duration) ease-out;
+    }
+
+    cart-item-processing {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
 }
 
 // Base styles for child components
@@ -152,4 +185,24 @@ cart-item-processing {
     opacity var(--cart-item-processing-duration) ease-out,
     visibility var(--cart-item-processing-duration) ease-out;
   z-index: 10;
+
+  // Default loader animation
+  .cart-item-loader {
+    width: 60px;
+    aspect-ratio: 2;
+    --_g: no-repeat radial-gradient(circle closest-side, #000 90%, #0000);
+    background: 
+      var(--_g) 0%   50%,
+      var(--_g) 50%  50%,
+      var(--_g) 100% 50%;
+    background-size: calc(100%/3) 50%;
+    animation: cart-item-loader 1s infinite linear;
+  }
+}
+
+@keyframes cart-item-loader {
+  20% { background-position: 0%   0%, 50%  50%, 100%  50%; }
+  40% { background-position: 0% 100%, 50%   0%, 100%  50%; }
+  60% { background-position: 0%  50%, 50% 100%, 100%   0%; }
+  80% { background-position: 0%  50%, 50%  50%, 100% 100%; }
 }

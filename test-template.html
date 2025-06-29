@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Item Template Test</title>
+    <link rel="stylesheet" href="dist/cart-item.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        
+        .test-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background: #007cba;
+            color: white;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #005a87;
+        }
+        
+        /* Example styling for cart item content */
+        cart-item-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .product-details {
+            flex: 1;
+        }
+        
+        .product-title {
+            font-weight: bold;
+            margin: 0 0 5px 0;
+        }
+        
+        .product-variant {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0 0 10px 0;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-controls input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .product-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .remove-btn:hover {
+            background: #c82333;
+        }
+        
+        .price {
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        cart-item-processing {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>Cart Item Template Test</h1>
+    
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button onclick="addNewItem()">Add New Item (Template)</button>
+        <button onclick="addPreRenderedItem()">Add Pre-rendered Item</button>
+        <button onclick="setProcessing()">Set Processing</button>
+        <button onclick="setReady()">Set Ready</button>
+        <button onclick="destroyItems()">Destroy All Items</button>
+    </div>
+    
+    <div id="cart-container">
+        <h3>Cart Items:</h3>
+    </div>
+
+    <script type="module">
+        import { CartItem } from './dist/cart-item.esm.js';
+        
+        // Set up the template function - just the content, not the containers
+        CartItem.setTemplate((item) => {
+            return `
+                <div class="product-image">
+                    ${item.featured_image ? `<img src="${item.featured_image}" alt="${item.product_title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">` : 'No Image'}
+                </div>
+                <div class="product-details">
+                    <h4 class="product-title">${item.product_title}</h4>
+                    ${item.variant_title ? `<p class="product-variant">${item.variant_title}</p>` : ''}
+                    <div class="quantity-controls">
+                        <label>Qty:</label>
+                        <input type="number" data-cart-quantity value="${item.quantity}" min="1">
+                    </div>
+                </div>
+                <div class="product-actions">
+                    <button class="remove-btn" data-action-remove>Remove</button>
+                    <div class="price">$${(item.line_price / 100).toFixed(2)}</div>
+                </div>
+            `;
+        });
+        
+        // Sample Shopify cart item data
+        const sampleItems = [
+            {
+                key: 'item-1',
+                id: 'item-1',
+                product_title: 'Awesome T-Shirt',
+                variant_title: 'Size: Large, Color: Blue',
+                quantity: 2,
+                line_price: 2999, // Price in cents
+                featured_image: null,
+                url: '/products/awesome-tshirt'
+            },
+            {
+                key: 'item-2',
+                id: 'item-2', 
+                product_title: 'Cool Mug',
+                variant_title: null,
+                quantity: 1,
+                line_price: 1595, // Price in cents
+                featured_image: null,
+                url: '/products/cool-mug'
+            }
+        ];
+        
+        let itemCounter = 3;
+        
+        // Test functions
+        window.addNewItem = function() {
+            const container = document.getElementById('cart-container');
+            const newItem = new CartItem({
+                key: `item-${itemCounter}`,
+                id: `item-${itemCounter}`,
+                product_title: `Test Product ${itemCounter}`,
+                variant_title: `Variant ${itemCounter}`,
+                quantity: 1,
+                line_price: Math.floor(Math.random() * 5000) + 1000,
+                featured_image: null,
+                url: `/products/test-${itemCounter}`
+            });
+            
+            container.appendChild(newItem);
+            itemCounter++;
+        };
+        
+        window.addPreRenderedItem = function() {
+            const container = document.getElementById('cart-container');
+            const preRendered = document.createElement('cart-item');
+            preRendered.setAttribute('key', `pre-rendered-${itemCounter}`);
+            preRendered.innerHTML = `
+                <cart-item-content>
+                    <div class="product-image">Pre-rendered</div>
+                    <div class="product-details">
+                        <h4 class="product-title">Pre-rendered Item ${itemCounter}</h4>
+                        <div class="quantity-controls">
+                            <label>Qty:</label>
+                            <input type="number" data-cart-quantity value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="remove-btn" data-action-remove>Remove</button>
+                        <div class="price">$19.99</div>
+                    </div>
+                </cart-item-content>
+                <cart-item-processing>
+                    <div class="spinner"></div>
+                    <span>Processing...</span>
+                </cart-item-processing>
+            `;
+            container.appendChild(preRendered);
+            itemCounter++;
+        };
+        
+        window.setProcessing = function() {
+            document.querySelectorAll('cart-item').forEach(item => {
+                item.setState('processing');
+            });
+        };
+        
+        window.setReady = function() {
+            document.querySelectorAll('cart-item').forEach(item => {
+                item.setState('ready');
+            });
+        };
+        
+        window.destroyItems = function() {
+            document.querySelectorAll('cart-item').forEach(item => {
+                item.destroyYourself();
+            });
+        };
+        
+        // Event listeners for cart events
+        document.addEventListener('cart-item:remove', (e) => {
+            console.log('Remove item:', e.detail.cartKey);
+            e.detail.element.setState('processing');
+            
+            // Simulate API call
+            setTimeout(() => {
+                e.detail.element.destroyYourself();
+            }, 1500);
+        });
+        
+        document.addEventListener('cart-item:quantity-change', (e) => {
+            console.log('Quantity changed:', e.detail.cartKey, 'to', e.detail.quantity);
+        });
+        
+        // Add initial sample items
+        window.addEventListener('load', () => {
+            const container = document.getElementById('cart-container');
+            sampleItems.forEach(itemData => {
+                const cartItem = new CartItem(itemData);
+                container.appendChild(cartItem);
+            });
+        });
+    </script>
+</body>
+</html>
