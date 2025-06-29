@@ -277,35 +277,36 @@
     }
 
     /**
-     * Destroy this cart item with animation
+     * gracefully animate this cart item closed, then let #handleTransitionEnd remove it
+     *
+     * @returns {void}
      */
     destroyYourself() {
-      if (this.#isDestroying) return; // Prevent multiple calls
+      // bail if already in the middle of a destroy cycle
+      if (this.#isDestroying) return;
 
       this.#isDestroying = true;
 
-      // First set to destroying state for visual effects
+      // snapshot the current rendered height before applying any "destroying" styles
+      const initialHeight = this.offsetHeight;
+
+      // switch to 'destroying' state so css can fade / slide visuals
       this.setState('destroying');
 
-      // Get current height for animation
-      const currentHeight = this.offsetHeight;
+      // lock the measured height on the next animation frame to ensure layout is fully flushed
+      requestAnimationFrame(() => {
+        this.style.height = `${initialHeight}px`;
+        this.offsetHeight; // force a reflow so the browser registers the fixed height
 
-      // Force height to current value (removes auto)
-      this.style.height = `${currentHeight}px`;
+        // read the css custom property for timing, defaulting to 400ms
+        const elementStyle = getComputedStyle(this);
+        const destroyDuration =
+          elementStyle.getPropertyValue('--cart-item-destroying-duration')?.trim() || '400ms';
 
-      // Trigger reflow to ensure height is set
-      this.offsetHeight;
-
-      // Get the destroying duration from CSS custom property
-      const computedStyle = getComputedStyle(this);
-      const destroyingDuration =
-        computedStyle.getPropertyValue('--cart-item-destroying-duration') || '400ms';
-
-      // Add transition and animate to 0 height
-      this.style.transition = `all ${destroyingDuration} ease`;
-      this.style.height = '0px';
-
-      // The actual removal happens in #handleTransitionEnd
+        // animate only the height to zero; other properties stay under stylesheet control
+        this.style.transition = `height ${destroyDuration} ease`;
+        this.style.height = '0px';
+      });
     }
   }
 
