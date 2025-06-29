@@ -33,7 +33,7 @@ Or include directly in your HTML:
 
 ```html
 <script src="https://unpkg.com/@magic-spells/cart-item"></script>
-<link rel="stylesheet" href="https://unpkg.com/@magic-spells/cart-item/dist/cart-item.min.css">
+<link rel="stylesheet" href="https://unpkg.com/@magic-spells/cart-item/dist/cart-item.min.css" />
 ```
 
 ## Usage
@@ -42,27 +42,27 @@ Or include directly in your HTML:
 
 ```html
 <cart-item key="shopify-line-item-123">
-  <cart-item-content>
-    <div class="product-image">
-      <img src="product.jpg" alt="Product">
-    </div>
-    <div class="product-details">
-      <h4>Awesome T-Shirt</h4>
-      <div class="price">$29.99</div>
-      <div class="quantity">
-        <label>Qty:</label>
-        <input type="number" data-cart-quantity value="1" min="1">
-      </div>
-    </div>
-    <div class="actions">
-      <button data-action-remove>Remove</button>
-      <div class="total">$29.99</div>
-    </div>
-  </cart-item-content>
-  
-  <cart-item-processing>
-    <div class="cart-item-loader"></div>
-  </cart-item-processing>
+	<cart-item-content>
+		<div class="product-image">
+			<img src="product.jpg" alt="Product" />
+		</div>
+		<div class="product-details">
+			<h4>Awesome T-Shirt</h4>
+			<div class="price">$29.99</div>
+			<div class="quantity">
+				<label>Qty:</label>
+				<input type="number" data-cart-quantity value="1" min="1" />
+			</div>
+		</div>
+		<div class="actions">
+			<button data-action-remove>Remove</button>
+			<div class="total">$29.99</div>
+		</div>
+	</cart-item-content>
+
+	<cart-item-processing>
+		<div class="cart-item-loader"></div>
+	</cart-item-processing>
 </cart-item>
 ```
 
@@ -71,7 +71,7 @@ Or include directly in your HTML:
 ```javascript
 // Set up template once
 CartItem.setTemplate((item) => {
-  return `
+	return `
     <div class="product-image">
       <img src="${item.featured_image}" alt="${item.product_title}">
     </div>
@@ -85,14 +85,14 @@ CartItem.setTemplate((item) => {
     </div>
     <div class="actions">
       <button data-action-remove>Remove</button>
-      <div class="total">$${(item.line_price * item.quantity / 100).toFixed(2)}</div>
+      <div class="total">$${((item.line_price * item.quantity) / 100).toFixed(2)}</div>
     </div>
   `;
 });
 
 // Optionally customize the processing overlay (defaults to modern 3-dot loader)
 CartItem.setProcessingTemplate(() => {
-  return `
+	return `
     <div class="custom-loader"></div>
     <span>Processing...</span>
   `;
@@ -117,60 +117,62 @@ The component emits events that bubble up to parent components (like `cart-panel
 
 ### Attributes
 
-| Attribute | Description                                    | Required |
-| --------- | ---------------------------------------------- | -------- |
-| `key`     | Unique identifier for the cart item (Shopify line item key) | Yes      |
+| Attribute | Description                                                            | Required |
+| --------- | ---------------------------------------------------------------------- | -------- |
+| `key`     | Unique identifier for the cart item (Shopify line item key)            | Yes      |
 | `state`   | Current visual state: `ready`, `processing`, `destroying`, `appearing` | No       |
 
 ### Required HTML Structure
 
-| Element                | Description                               | Required |
-| ---------------------- | ----------------------------------------- | -------- |
-| `<cart-item>`          | Main container with `key` attribute      | Yes      |
-| `<cart-item-content>`  | Content area (product info, buttons) - auto-generated when using templates | Yes      |
+| Element                  | Description                                                                    | Required |
+| ------------------------ | ------------------------------------------------------------------------------ | -------- |
+| `<cart-item>`            | Main container with `key` attribute                                            | Yes      |
+| `<cart-item-content>`    | Content area (product info, buttons) - auto-generated when using templates     | Yes      |
 | `<cart-item-processing>` | Processing overlay (modern 3-dot loader) - auto-generated when using templates | No       |
 
 ### Interactive Elements
 
-| Selector               | Description                               | Event Triggered    |
-| ---------------------- | ----------------------------------------- | ------------------ |
-| `[data-action-remove]` | Remove button                           | `cart-item:remove` |
-| `[data-cart-quantity]`   | Quantity input field                    | `cart-item:quantity-change` |
+| Selector               | Description          | Event Triggered             |
+| ---------------------- | -------------------- | --------------------------- |
+| `[data-action-remove]` | Remove button        | `cart-item:remove`          |
+| `[data-cart-quantity]` | Quantity input field | `cart-item:quantity-change` |
 
 Example:
 
 ```html
 <!-- Minimal pre-rendered cart item -->
 <cart-item key="item-123">
-  <cart-item-content>
-    <h4>Product Name</h4>
-    <button data-action-remove>Remove</button>
-  </cart-item-content>
+	<cart-item-content>
+		<h4>Product Name</h4>
+		<button data-action-remove>Remove</button>
+	</cart-item-content>
 </cart-item>
 
 <!-- Full-featured pre-rendered cart item -->
 <cart-item key="shopify-40123456789" state="ready">
-  <cart-item-content>
-    <!-- Your product layout here -->
-  </cart-item-content>
-  <cart-item-processing>
-    <div class="cart-item-loader"></div>
-  </cart-item-processing>
+	<cart-item-content>
+		<!-- Your product layout here -->
+	</cart-item-content>
+	<cart-item-processing>
+		<div class="cart-item-loader"></div>
+	</cart-item-processing>
 </cart-item>
 
 <!-- Template-based cart item (JavaScript) -->
 <script>
-  CartItem.setTemplate((item) => `
+	CartItem.setTemplate(
+		(item) => `
     <h4>${item.product_title}</h4>
     <input data-cart-quantity value="${item.quantity}">
     <button data-action-remove>Remove</button>
-  `);
-  
-  // Optionally set custom processing template
-  CartItem.setProcessingTemplate(() => `<div class="custom-loader">Loading...</div>`);
-  
-  const newItem = new CartItem(shopifyCartItemData);
-  document.body.appendChild(newItem);
+  `
+	);
+
+	// Optionally set custom processing template
+	CartItem.setProcessingTemplate(() => `<div class="custom-loader">Loading...</div>`);
+
+	const newItem = new CartItem(shopifyCartItemData);
+	document.body.appendChild(newItem);
 </script>
 ```
 
@@ -183,33 +185,33 @@ The component provides complete styling control through CSS custom properties. S
 ```css
 /* Customize animation timings */
 cart-item {
-  --cart-item-processing-duration: 300ms;
-  --cart-item-destroying-duration: 800ms;
+	--cart-item-processing-duration: 300ms;
+	--cart-item-destroying-duration: 800ms;
 }
 
 /* Customize visual effects */
 cart-item {
-  --cart-item-processing-scale: 0.95;
-  --cart-item-destroying-scale: 0.8;
-  --cart-item-destroying-blur: 15px;
-  --cart-item-destroying-opacity: 0.1;
+	--cart-item-processing-scale: 0.95;
+	--cart-item-destroying-scale: 0.8;
+	--cart-item-destroying-blur: 15px;
+	--cart-item-destroying-opacity: 0.1;
 }
 
 /* Style your content layout */
 cart-item-content {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	gap: 1rem;
+	padding: 1rem;
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
 }
 
 /* Custom processing overlay */
 cart-item-processing {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
+	background: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(4px);
 }
 ```
 
@@ -217,39 +219,39 @@ cart-item-processing {
 
 The component supports both CSS custom properties and SCSS variables for maximum flexibility:
 
-| CSS Variable                       | SCSS Variable                       | Description                          | Default           |
-| ---------------------------------- | ----------------------------------- | ------------------------------------ | ----------------- |
-| `--cart-item-processing-duration`  | `$cart-item-processing-duration`   | Processing animation duration        | 250ms             |
-| `--cart-item-destroying-duration`  | `$cart-item-destroying-duration`   | Destroying animation duration        | 600ms             |
-| `--cart-item-processing-scale`     | `$cart-item-processing-scale`      | Scale during processing state        | 0.98              |
-| `--cart-item-destroying-scale`     | `$cart-item-destroying-scale`      | Scale during destroying state        | 0.85              |
-| `--cart-item-processing-blur`      | `$cart-item-processing-blur`       | Blur during processing state         | 1px               |
-| `--cart-item-destroying-blur`      | `$cart-item-destroying-blur`       | Blur during destroying state         | 10px              |
-| `--cart-item-destroying-opacity`   | `$cart-item-destroying-opacity`    | Opacity during destroying state      | 0.2               |
-| `--cart-item-destroying-brightness`| `$cart-item-destroying-brightness` | Brightness during destroying state   | 0.6               |
-| `--cart-item-destroying-saturate`  | `$cart-item-destroying-saturate`   | Saturation during destroying state   | 0.3               |
-| `--cart-item-shadow-color`         | `$cart-item-shadow-color`          | Processing shadow color              | rgba(0,0,0,0.15)  |
-| `--cart-item-shadow-color-strong`  | `$cart-item-shadow-color-strong`   | Destroying shadow color              | rgba(0,0,0,0.5)   |
-| `--cart-item-processing-bg`        | `$cart-item-processing-bg`         | Processing background overlay        | rgba(100,100,100,0.2) |
-| `--cart-item-destroying-bg`        | `$cart-item-destroying-bg`         | Destroying background color          | rgba(0,0,0,0.1)   |
+| CSS Variable                        | SCSS Variable                      | Description                        | Default               |
+| ----------------------------------- | ---------------------------------- | ---------------------------------- | --------------------- |
+| `--cart-item-processing-duration`   | `$cart-item-processing-duration`   | Processing animation duration      | 250ms                 |
+| `--cart-item-destroying-duration`   | `$cart-item-destroying-duration`   | Destroying animation duration      | 600ms                 |
+| `--cart-item-processing-scale`      | `$cart-item-processing-scale`      | Scale during processing state      | 0.98                  |
+| `--cart-item-destroying-scale`      | `$cart-item-destroying-scale`      | Scale during destroying state      | 0.85                  |
+| `--cart-item-processing-blur`       | `$cart-item-processing-blur`       | Blur during processing state       | 1px                   |
+| `--cart-item-destroying-blur`       | `$cart-item-destroying-blur`       | Blur during destroying state       | 10px                  |
+| `--cart-item-destroying-opacity`    | `$cart-item-destroying-opacity`    | Opacity during destroying state    | 0.2                   |
+| `--cart-item-destroying-brightness` | `$cart-item-destroying-brightness` | Brightness during destroying state | 0.6                   |
+| `--cart-item-destroying-saturate`   | `$cart-item-destroying-saturate`   | Saturation during destroying state | 0.3                   |
+| `--cart-item-shadow-color`          | `$cart-item-shadow-color`          | Processing shadow color            | rgba(0,0,0,0.15)      |
+| `--cart-item-shadow-color-strong`   | `$cart-item-shadow-color-strong`   | Destroying shadow color            | rgba(0,0,0,0.5)       |
+| `--cart-item-processing-bg`         | `$cart-item-processing-bg`         | Processing background overlay      | rgba(100,100,100,0.2) |
+| `--cart-item-destroying-bg`         | `$cart-item-destroying-bg`         | Destroying background color        | rgba(0,0,0,0.1)       |
 
 #### CSS Override Examples:
 
 ```css
 /* Dramatic destruction effect */
 .dramatic-cart {
-  --cart-item-destroying-duration: 1200ms;
-  --cart-item-destroying-scale: 0.3;
-  --cart-item-destroying-blur: 20px;
-  --cart-item-destroying-opacity: 0;
-  --cart-item-destroying-saturate: 0;
+	--cart-item-destroying-duration: 1200ms;
+	--cart-item-destroying-scale: 0.3;
+	--cart-item-destroying-blur: 20px;
+	--cart-item-destroying-opacity: 0;
+	--cart-item-destroying-saturate: 0;
 }
 
 /* Subtle processing state */
 .subtle-cart {
-  --cart-item-processing-scale: 0.99;
-  --cart-item-processing-blur: 0.5px;
-  --cart-item-processing-duration: 150ms;
+	--cart-item-processing-scale: 0.99;
+	--cart-item-processing-blur: 0.5px;
+	--cart-item-processing-duration: 150ms;
 }
 ```
 
@@ -268,7 +270,7 @@ $cart-item-destroying-blur: 15px;
 @import '@magic-spells/cart-item/css';
 
 .my-cart cart-item {
-  --cart-item-destroying-duration: 800ms;
+	--cart-item-destroying-duration: 800ms;
 }
 ```
 
@@ -293,12 +295,14 @@ $cart-item-destroying-blur: 15px;
 The component emits custom events that bubble up for parent components to handle:
 
 **`cart-item:remove`**
+
 - Triggered when a remove button (`[data-action-remove]`) is clicked
 - `event.detail`: `{ cartKey, element }`
 - Works with both pre-rendered and template-based items
 
 **`cart-item:quantity-change`**
-- Triggered when a quantity input (`[data-cart-quantity]`) value changes  
+
+- Triggered when a quantity input (`[data-cart-quantity]`) value changes
 - `event.detail`: `{ cartKey, quantity, element }`
 - Works with both pre-rendered and template-based items
 
@@ -307,7 +311,7 @@ The component emits custom events that bubble up for parent components to handle
 ```javascript
 // Set up template (do this once, before creating items)
 CartItem.setTemplate((item) => {
-  return `
+	return `
     <div class="product-info">
       <h4>${item.product_title}</h4>
       <input data-cart-quantity value="${item.quantity}">
@@ -318,7 +322,7 @@ CartItem.setTemplate((item) => {
 
 // Optionally customize processing overlay (defaults to modern 3-dot loader)
 CartItem.setProcessingTemplate(() => {
-  return `
+	return `
     <div class="custom-loader"></div>
     <span>Processing...</span>
   `;
@@ -332,9 +336,9 @@ document.querySelector('#cart').appendChild(cartItem);
 const existingItem = document.querySelector('cart-item');
 
 // Change states
-existingItem.setState('processing');  // Show processing overlay
-existingItem.setState('ready');       // Return to normal
-existingItem.setState('destroying');  // Apply destruction effects
+existingItem.setState('processing'); // Show processing overlay
+existingItem.setState('ready'); // Return to normal
+existingItem.setState('destroying'); // Apply destruction effects
 
 // Trigger destruction (includes animation + DOM removal)
 existingItem.destroyYourself();
@@ -343,25 +347,26 @@ existingItem.destroyYourself();
 existingItem.setData(updatedShopifyData);
 
 // Get item information
-console.log(existingItem.cartKey);    // "shopify-line-item-123"
-console.log(existingItem.state);      // "ready"
-console.log(existingItem.itemData);   // Original Shopify item data
+console.log(existingItem.cartKey); // "shopify-line-item-123"
+console.log(existingItem.state); // "ready"
+console.log(existingItem.itemData); // Original Shopify item data
 
 // Listen for events
 document.addEventListener('cart-item:remove', (e) => {
-  console.log('Remove requested:', e.detail.cartKey);
-  
-  // Set processing state
-  e.detail.element.setState('processing');
-  
-  // Make AJAX call, then destroy
-  fetch('/cart/remove', { /* ... */ })
-    .then(() => e.detail.element.destroyYourself());
+	console.log('Remove requested:', e.detail.cartKey);
+
+	// Set processing state
+	e.detail.element.setState('processing');
+
+	// Make AJAX call, then destroy
+	fetch('/cart/remove', {
+		/* ... */
+	}).then(() => e.detail.element.destroyYourself());
 });
 
 document.addEventListener('cart-item:quantity-change', (e) => {
-  console.log('Quantity changed:', e.detail.quantity);
-  // Handle quantity update...
+	console.log('Quantity changed:', e.detail.quantity);
+	// Handle quantity update...
 });
 ```
 
@@ -382,10 +387,10 @@ The component is optimized for:
 ```javascript
 // Example cart panel integration
 class CartPanel {
-  constructor() {
-    // Set up template for dynamically added items
-    CartItem.setTemplate((item) => {
-      return `
+	constructor() {
+		// Set up template for dynamically added items
+		CartItem.setTemplate((item) => {
+			return `
         <div class="product-image">
           <img src="${item.featured_image}" alt="${item.product_title}">
         </div>
@@ -399,62 +404,60 @@ class CartPanel {
           <span>$${(item.line_price / 100).toFixed(2)}</span>
         </div>
       `;
-    });
-    
-    document.addEventListener('cart-item:remove', this.handleRemove.bind(this));
-    document.addEventListener('cart-item:quantity-change', this.handleQuantityChange.bind(this));
-  }
-  
-  async handleRemove(e) {
-    const { cartKey, element } = e.detail;
-    
-    // Show processing state
-    element.setState('processing');
-    
-    try {
-      // Shopify AJAX API call
-      await fetch('/cart/change.js', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: cartKey, quantity: 0 })
-      });
-      
-      // Animate out and remove
-      element.destroyYourself();
-      
-    } catch (error) {
-      // Revert to ready state on error
-      element.setState('ready');
-      console.error('Failed to remove item:', error);
-    }
-  }
-  
-  // Add new item from cart response
-  addCartItem(shopifyItem) {
-    const cartItem = new CartItem(shopifyItem);
-    this.cartContainer.appendChild(cartItem);
-  }
-  
-  async handleQuantityChange(e) {
-    const { cartKey, quantity, element } = e.detail;
-    
-    // Optional: Show processing state for quantity changes
-    // element.setState('processing');
-    
-    try {
-      await fetch('/cart/change.js', {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: cartKey, quantity })
-      });
-      
-      // Update UI with new totals
-      this.updateCartTotals();
-      
-    } catch (error) {
-      console.error('Failed to update quantity:', error);
-    }
-  }
+		});
+
+		document.addEventListener('cart-item:remove', this.handleRemove.bind(this));
+		document.addEventListener('cart-item:quantity-change', this.handleQuantityChange.bind(this));
+	}
+
+	async handleRemove(e) {
+		const { cartKey, element } = e.detail;
+
+		// Show processing state
+		element.setState('processing');
+
+		try {
+			// Shopify AJAX API call
+			await fetch('/cart/change.js', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id: cartKey, quantity: 0 }),
+			});
+
+			// Animate out and remove
+			element.destroyYourself();
+		} catch (error) {
+			// Revert to ready state on error
+			element.setState('ready');
+			console.error('Failed to remove item:', error);
+		}
+	}
+
+	// Add new item from cart response
+	addCartItem(shopifyItem) {
+		const cartItem = new CartItem(shopifyItem);
+		this.cartContainer.appendChild(cartItem);
+	}
+
+	async handleQuantityChange(e) {
+		const { cartKey, quantity, element } = e.detail;
+
+		// Optional: Show processing state for quantity changes
+		// element.setState('processing');
+
+		try {
+			await fetch('/cart/change.js', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id: cartKey, quantity }),
+			});
+
+			// Update UI with new totals
+			this.updateCartTotals();
+		} catch (error) {
+			console.error('Failed to update quantity:', error);
+		}
+	}
 }
 
 new CartPanel();
@@ -465,53 +468,53 @@ new CartPanel();
 ```javascript
 // Example without any framework
 class SimpleCartManager {
-  constructor() {
-    // Set up template for new items
-    CartItem.setTemplate((item) => {
-      return `
+	constructor() {
+		// Set up template for new items
+		CartItem.setTemplate((item) => {
+			return `
         <div class="item-info">
           <h4>${item.product_title}</h4>
           <input type="number" data-cart-quantity value="${item.quantity}" min="1">
           <button data-action-remove>Remove</button>
-          <span>$${(item.line_price * item.quantity / 100).toFixed(2)}</span>
+          <span>$${((item.line_price * item.quantity) / 100).toFixed(2)}</span>
         </div>
       `;
-    });
-    
-    document.addEventListener('cart-item:remove', this.handleRemove.bind(this));
-    document.addEventListener('cart-item:quantity-change', this.handleQuantityChange.bind(this));
-  }
-  
-  handleRemove(e) {
-    const { cartKey, element } = e.detail;
-    console.log(`Removing item: ${cartKey}`);
-    
-    // Show processing state
-    element.setState('processing');
-    
-    // Simulate API call
-    setTimeout(() => {
-      element.destroyYourself();
-    }, 1000);
-  }
-  
-  handleQuantityChange(e) {
-    const { cartKey, quantity } = e.detail;
-    console.log(`Item ${cartKey} quantity changed to ${quantity}`);
-    
-    // Update your cart state/UI as needed
-    this.updateCartDisplay();
-  }
-  
-  // Add new item from cart data
-  addNewItem(cartItemData) {
-    const cartItem = new CartItem(cartItemData);
-    document.querySelector('#cart-container').appendChild(cartItem);
-  }
-  
-  updateCartDisplay() {
-    // Your cart update logic here
-  }
+		});
+
+		document.addEventListener('cart-item:remove', this.handleRemove.bind(this));
+		document.addEventListener('cart-item:quantity-change', this.handleQuantityChange.bind(this));
+	}
+
+	handleRemove(e) {
+		const { cartKey, element } = e.detail;
+		console.log(`Removing item: ${cartKey}`);
+
+		// Show processing state
+		element.setState('processing');
+
+		// Simulate API call
+		setTimeout(() => {
+			element.destroyYourself();
+		}, 1000);
+	}
+
+	handleQuantityChange(e) {
+		const { cartKey, quantity } = e.detail;
+		console.log(`Item ${cartKey} quantity changed to ${quantity}`);
+
+		// Update your cart state/UI as needed
+		this.updateCartDisplay();
+	}
+
+	// Add new item from cart data
+	addNewItem(cartItemData) {
+		const cartItem = new CartItem(cartItemData);
+		document.querySelector('#cart-container').appendChild(cartItem);
+	}
+
+	updateCartDisplay() {
+		// Your cart update logic here
+	}
 }
 
 // Initialize
@@ -521,7 +524,7 @@ new SimpleCartManager();
 ## Browser Support
 
 - Chrome 54+
-- Firefox 63+ 
+- Firefox 63+
 - Safari 10.1+
 - Edge 79+
 
