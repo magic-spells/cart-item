@@ -101,6 +101,10 @@ CartItem.setProcessingTemplate(() => {
 // Create new cart item from Shopify cart data
 const cartItem = new CartItem(shopifyItemData);
 document.querySelector('#cart').appendChild(cartItem);
+
+// Create new cart item with appearing animation
+const animatedCartItem = CartItem.createAnimated(shopifyItemData);
+document.querySelector('#cart').appendChild(animatedCartItem);
 ```
 
 ## How It Works
@@ -219,21 +223,22 @@ cart-item-processing {
 
 The component supports both CSS custom properties and SCSS variables for maximum flexibility:
 
-| CSS Variable                        | SCSS Variable                      | Description                        | Default               |
-| ----------------------------------- | ---------------------------------- | ---------------------------------- | --------------------- |
-| `--cart-item-processing-duration`   | `$cart-item-processing-duration`   | Processing animation duration      | 250ms                 |
-| `--cart-item-destroying-duration`   | `$cart-item-destroying-duration`   | Destroying animation duration      | 600ms                 |
-| `--cart-item-processing-scale`      | `$cart-item-processing-scale`      | Scale during processing state      | 0.98                  |
-| `--cart-item-destroying-scale`      | `$cart-item-destroying-scale`      | Scale during destroying state      | 0.85                  |
-| `--cart-item-processing-blur`       | `$cart-item-processing-blur`       | Blur during processing state       | 1px                   |
-| `--cart-item-destroying-blur`       | `$cart-item-destroying-blur`       | Blur during destroying state       | 10px                  |
-| `--cart-item-destroying-opacity`    | `$cart-item-destroying-opacity`    | Opacity during destroying state    | 0.2                   |
-| `--cart-item-destroying-brightness` | `$cart-item-destroying-brightness` | Brightness during destroying state | 0.6                   |
-| `--cart-item-destroying-saturate`   | `$cart-item-destroying-saturate`   | Saturation during destroying state | 0.3                   |
-| `--cart-item-shadow-color`          | `$cart-item-shadow-color`          | Processing shadow color            | rgba(0,0,0,0.15)      |
-| `--cart-item-shadow-color-strong`   | `$cart-item-shadow-color-strong`   | Destroying shadow color            | rgba(0,0,0,0.5)       |
-| `--cart-item-processing-bg`         | `$cart-item-processing-bg`         | Processing background overlay      | rgba(100,100,100,0.2) |
-| `--cart-item-destroying-bg`         | `$cart-item-destroying-bg`         | Destroying background color        | rgba(0,0,0,0.1)       |
+| CSS Variable                      | SCSS Variable                    | Description                     | Default          |
+| --------------------------------- | -------------------------------- | ------------------------------- | ---------------- |
+| `--cart-item-processing-duration` | `$cart-item-processing-duration` | Processing animation duration   | 250ms            |
+| `--cart-item-destroying-duration` | `$cart-item-destroying-duration` | Destroying animation duration   | 600ms            |
+| `--cart-item-appearing-duration`  | `$cart-item-appearing-duration`  | Appearing animation duration    | 400ms            |
+| `--cart-item-processing-scale`    | `$cart-item-processing-scale`    | Scale during processing state   | 0.98             |
+| `--cart-item-destroying-scale`    | `$cart-item-destroying-scale`    | Scale during destroying state   | 0.85             |
+| `--cart-item-appearing-scale`     | `$cart-item-appearing-scale`     | Scale during appearing state    | 0.9              |
+| `--cart-item-processing-blur`     | `$cart-item-processing-blur`     | Blur during processing state    | 1px              |
+| `--cart-item-destroying-blur`     | `$cart-item-destroying-blur`     | Blur during destroying state    | 10px             |
+| `--cart-item-appearing-blur`      | `$cart-item-appearing-blur`      | Blur during appearing state     | 2px              |
+| `--cart-item-destroying-opacity`  | `$cart-item-destroying-opacity`  | Opacity during destroying state | 0.2              |
+| `--cart-item-appearing-opacity`   | `$cart-item-appearing-opacity`   | Opacity during appearing state  | 0.5              |
+| `--cart-item-shadow-color`        | `$cart-item-shadow-color`        | Processing shadow color         | rgba(0,0,0,0.15) |
+| `--cart-item-shadow-color-strong` | `$cart-item-shadow-color-strong` | Destroying shadow color         | rgba(0,0,0,0.5)  |
+| `--cart-item-destroying-bg`       | `$cart-item-destroying-bg`       | Destroying background color     | rgba(0,0,0,0.1)  |
 
 #### CSS Override Examples:
 
@@ -260,6 +265,7 @@ The component supports both CSS custom properties and SCSS variables for maximum
 ```scss
 // Override SCSS variables before importing
 $cart-item-destroying-duration: 800ms;
+$cart-item-appearing-duration: 600ms;
 $cart-item-processing-scale: 0.95;
 $cart-item-destroying-blur: 15px;
 
@@ -271,6 +277,7 @@ $cart-item-destroying-blur: 15px;
 
 .my-cart cart-item {
 	--cart-item-destroying-duration: 800ms;
+	--cart-item-appearing-duration: 600ms;
 }
 ```
 
@@ -280,6 +287,7 @@ $cart-item-destroying-blur: 15px;
 
 - `CartItem.setTemplate(templateFn)`: Set the template function for all cart items
 - `CartItem.setProcessingTemplate(templateFn)`: Set the processing overlay template (optional, defaults to modern 3-dot bouncing loader)
+- `CartItem.createAnimated(itemData)`: Create a new cart item with appearing animation
 
 #### Instance Methods
 
@@ -331,6 +339,10 @@ CartItem.setProcessingTemplate(() => {
 // Create from Shopify cart data
 const cartItem = new CartItem(shopifyItemData);
 document.querySelector('#cart').appendChild(cartItem);
+
+// Create with appearing animation
+const animatedCartItem = CartItem.createAnimated(shopifyItemData);
+document.querySelector('#cart').appendChild(animatedCartItem);
 
 // Or work with existing pre-rendered items
 const existingItem = document.querySelector('cart-item');
@@ -434,8 +446,10 @@ class CartPanel {
 	}
 
 	// Add new item from cart response
-	addCartItem(shopifyItem) {
-		const cartItem = new CartItem(shopifyItem);
+	addCartItem(shopifyItem, options = {}) {
+		const cartItem = options.animate
+			? CartItem.createAnimated(shopifyItem)
+			: new CartItem(shopifyItem);
 		this.cartContainer.appendChild(cartItem);
 	}
 
@@ -507,8 +521,10 @@ class SimpleCartManager {
 	}
 
 	// Add new item from cart data
-	addNewItem(cartItemData) {
-		const cartItem = new CartItem(cartItemData);
+	addNewItem(cartItemData, options = {}) {
+		const cartItem = options.animate
+			? CartItem.createAnimated(cartItemData)
+			: new CartItem(cartItemData);
 		document.querySelector('#cart-container').appendChild(cartItem);
 	}
 

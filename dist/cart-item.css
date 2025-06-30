@@ -4,7 +4,6 @@ cart-item {
 	--cart-item-appearing-duration: 400ms;
 	--cart-item-shadow-color: rgba(0, 0, 0, 0.15);
 	--cart-item-shadow-color-strong: rgba(0, 0, 0, 0.5);
-	--cart-item-processing-bg: rgba(100, 100, 100, 0.2);
 	--cart-item-destroying-bg: rgba(0, 0, 0, 0.1);
 	--cart-item-processing-scale: 0.98;
 	--cart-item-destroying-scale: 0.85;
@@ -38,10 +37,21 @@ cart-item::after {
 	left: 0px;
 	transition: background-color var(--cart-item-processing-duration) ease;
 }
+cart-item[state='ready'] {
+	transition:
+		filter var(--cart-item-processing-duration) ease-out,
+		background-color var(--cart-item-processing-duration) ease-out,
+		box-shadow var(--cart-item-processing-duration) ease-out,
+		height var(--cart-item-appearing-duration) ease-out;
+}
 cart-item[state='ready'] cart-item-content {
 	transform: scale(1);
 	filter: blur(0px);
 	opacity: 1;
+	transition:
+		transform var(--cart-item-appearing-duration) ease-out,
+		filter var(--cart-item-appearing-duration) ease-out,
+		opacity var(--cart-item-appearing-duration) ease-out;
 }
 cart-item[state='ready'] cart-item-processing {
 	opacity: 0;
@@ -58,6 +68,10 @@ cart-item[state='processing'] cart-item-content {
 	filter: blur(var(--cart-item-processing-blur));
 	opacity: 0.9;
 	pointer-events: none;
+	transition:
+		transform var(--cart-item-processing-duration) ease-out,
+		filter var(--cart-item-processing-duration) ease-out,
+		opacity var(--cart-item-processing-duration) ease-out;
 }
 cart-item[state='processing'] cart-item-processing {
 	opacity: 1;
@@ -65,7 +79,7 @@ cart-item[state='processing'] cart-item-processing {
 }
 cart-item[state='destroying'] {
 	background-color: var(--cart-item-destroying-bg);
-	box-shadow: inset 0px 4px 20px var(--cart-item-shadow-color-strong);
+	box-shadow: inset 0px 2px 20px var(--cart-item-shadow-color-strong);
 	margin-top: 0px;
 	margin-bottom: 0px;
 	transition:
@@ -116,10 +130,6 @@ cart-item[state='appearing'] cart-item-processing {
 
 cart-item-content {
 	display: block;
-	transition:
-		transform var(--cart-item-processing-duration) ease-out,
-		filter var(--cart-item-processing-duration) ease-out,
-		opacity var(--cart-item-processing-duration) ease-out;
 }
 
 cart-item-processing {

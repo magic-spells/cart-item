@@ -135,16 +135,24 @@
 				background: white;
 				border-radius: 8px;
 				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+			}
+
+			.demo-controls h3 {
+				width: 100%;
+				margin: 0 0 1rem 0;
 			}
 
 			.demo-controls button {
-				margin-right: 0.5rem;
 				padding: 0.5rem 1rem;
 				border: 1px solid #007bff;
 				background: #007bff;
 				color: white;
 				border-radius: 4px;
 				cursor: pointer;
+				flex-shrink: 0;
 			}
 
 			.demo-controls button:hover {
@@ -174,7 +182,10 @@
 			<button onclick="simulateDestroy()" class="secondary">Destroy First Item</button>
 			<button onclick="resetItems()" class="secondary">Reset All Items</button>
 			<button onclick="addTemplatedItem()" style="background: #28a745; border-color: #28a745">
-				Add Templated Item
+				Add Item (No Animation)
+			</button>
+			<button onclick="addAnimatedItem()" style="background: #17a2b8; border-color: #17a2b8">
+				Add Item (With Animation)
 			</button>
 		</div>
 
@@ -409,7 +420,7 @@
 
 			// New function to demonstrate template-based item creation
 			function addTemplatedItem() {
-				console.log('🎭 Demo: Adding new templated item');
+				console.log('🎭 Demo: Adding new templated item (no animation)');
 
 				const sampleData = {
 					key: `templated-${Date.now()}`,
@@ -424,6 +435,26 @@
 
 				const cartContainer = document.querySelector('.cart-container');
 				const newItem = new CartItem(sampleData);
+				cartContainer.appendChild(newItem);
+			}
+
+			// New function to demonstrate animated item creation
+			function addAnimatedItem() {
+				console.log('🎭 Demo: Adding new templated item with animation');
+
+				const sampleData = {
+					key: `animated-${Date.now()}`,
+					id: `animated-${Date.now()}`,
+					product_title: 'Animated Product',
+					variant_title: 'Appears with Animation',
+					quantity: 1,
+					line_price: 4999, // $49.99 in cents
+					featured_image: null,
+					url: '/products/animated',
+				};
+
+				const cartContainer = document.querySelector('.cart-container');
+				const newItem = CartItem.createAnimated(sampleData);
 				cartContainer.appendChild(newItem);
 			}
 		</script>

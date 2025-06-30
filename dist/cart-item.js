@@ -45,6 +45,15 @@
 		}
 
 		/**
+		 * Create a cart item with appearing animation
+		 * @param {Object} itemData - Shopify cart item data
+		 * @returns {CartItem} Cart item instance that will animate in
+		 */
+		static createAnimated(itemData) {
+			return new CartItem(itemData, { animate: true });
+		}
+
+		/**
 		 * Define which attributes should be observed for changes
 		 */
 		static get observedAttributes() {
@@ -62,14 +71,16 @@
 			}
 		}
 
-		constructor(itemData = null) {
+		constructor(itemData = null, options = {}) {
 			super();
 
 			// Store item data if provided
 			this.#itemData = itemData;
 
-			// Set initial state - start with 'appearing' if we have item data to render
-			this.#currentState = itemData ? 'appearing' : this.getAttribute('state') || 'ready';
+			// Set initial state - start with 'appearing' only if explicitly requested
+			const shouldAnimate = options.animate || this.hasAttribute('animate-in');
+			this.#currentState =
+				itemData && shouldAnimate ? 'appearing' : this.getAttribute('state') || 'ready';
 
 			// Bind event handlers
 			this.#handlers = {
@@ -105,13 +116,9 @@
 					this.style.height = `${naturalHeight}px`;
 
 					// Transition to ready state after a brief delay
-					setTimeout(() => {
+					requestAnimationFrame(() => {
 						this.setState('ready');
-						// Remove explicit height after animation completes
-						setTimeout(() => {
-							this.style.height = '';
-						}, 400); // Match appearing duration
-					}, 50);
+					});
 				});
 			}
 		}
@@ -177,12 +184,15 @@
 		}
 
 		/**
-		 * Handle transition end events for destroy animation
+		 * Handle transition end events for destroy animation and appearing animation
 		 */
 		#handleTransitionEnd(e) {
 			if (e.propertyName === 'height' && this.#isDestroying) {
 				// Remove from DOM after height animation completes
 				this.remove();
+			} else if (e.propertyName === 'height' && this.#currentState === 'ready') {
+				// Remove explicit height after appearing animation completes
+				this.style.height = '';
 			}
 		}
 
