@@ -1,26 +1,34 @@
+// import QuantityModifier from '@magic-spells/quantity-modifier';
+
 /**
  * CartItem class that handles the functionality of a cart item component
  */
 class CartItem extends HTMLElement {
 	// Static template functions shared across all instances
-	static #template = null;
+	static #templates = new Map();
 	static #processingTemplate = null;
 
 	// Private fields
 	#currentState = 'ready';
 	#isDestroying = false;
+	#isAppearing = false;
 	#handlers = {};
 	#itemData = null;
+	#cartData = null;
 
 	/**
 	 * Set the template function for rendering cart items
-	 * @param {Function} templateFn - Function that takes item data and returns HTML string
+	 * @param {string} name - Template name ('default' for default template)
+	 * @param {Function} templateFn - Function that takes (itemData, cartData) and returns HTML string
 	 */
-	static setTemplate(templateFn) {
+	static setTemplate(name, templateFn) {
+		if (typeof name !== 'string') {
+			throw new Error('Template name must be a string');
+		}
 		if (typeof templateFn !== 'function') {
 			throw new Error('Template must be a function');
 		}
-		CartItem.#template = templateFn;
+		CartItem.#templates.set(name, templateFn);
 	}
 
 	/**
@@ -37,10 +45,11 @@ class CartItem extends HTMLElement {
 	/**
 	 * Create a cart item with appearing animation
 	 * @param {Object} itemData - Shopify cart item data
+	 * @param {Object} cartData - Full Shopify cart object
 	 * @returns {CartItem} Cart item instance that will animate in
 	 */
-	static createAnimated(itemData) {
-		return new CartItem(itemData, { animate: true });
+	static createAnimated(itemData, cartData) {
+		return new CartItem(itemData, cartData, { animate: true });
 	}
 
 	/**
@@ -61,11 +70,12 @@ class CartItem extends HTMLElement {
 		}
 	}
 
-	constructor(itemData = null, options = {}) {
+	constructor(itemData = null, cartData = null, options = {}) {
 		super();
 
-		// Store item data if provided
+		// Store item and cart data if provided
 		this.#itemData = itemData;
+		this.#cartData = cartData;
 
 		// Set initial state - start with 'appearing' only if explicitly requested
 		const shouldAnimate = options.animate || this.hasAttribute('animate-in');
@@ -83,12 +93,15 @@ class CartItem extends HTMLElement {
 	connectedCallback() {
 		// If we have item data, render it first
 		if (this.#itemData) {
-			this.#renderFromData();
+			this.#render();
 		}
 
 		// Find child elements
 		this.content = this.querySelector('cart-item-content');
 		this.processing = this.querySelector('cart-item-processing');
+
+		// Update line price elements in case of pre-rendered content
+		this.#updateLinePriceElements();
 
 		// Attach event listeners
 		this.#attachListeners();
@@ -97,6 +110,7 @@ class CartItem extends HTMLElement {
 		if (this.#currentState === 'appearing') {
 			// Set the state attribute
 			this.setAttribute('state', 'appearing');
+			this.#isAppearing = true;
 
 			// Get the natural height after rendering
 			requestAnimationFrame(() => {
@@ -124,6 +138,7 @@ class CartItem extends HTMLElement {
 	#attachListeners() {
 		this.addEventListener('click', this.#handlers.click);
 		this.addEventListener('change', this.#handlers.change);
+		this.addEventListener('quantity-modifier:change', this.#handlers.change);
 		this.addEventListener('transitionend', this.#handlers.transitionEnd);
 	}
 
@@ -133,6 +148,7 @@ class CartItem extends HTMLElement {
 	#detachListeners() {
 		this.removeEventListener('click', this.#handlers.click);
 		this.removeEventListener('change', this.#handlers.change);
+		this.removeEventListener('quantity-modifier:change', this.#handlers.change);
 		this.removeEventListener('transitionend', this.#handlers.transitionEnd);
 	}
 
@@ -163,9 +179,15 @@ class CartItem extends HTMLElement {
 	}
 
 	/**
-	 * Handle change events (for quantity inputs)
+	 * Handle change events (for quantity inputs and quantity-modifier)
 	 */
 	#handleChange(e) {
+		// Check if event is from quantity-modifier component
+		if (e.type === 'quantity-modifier:change') {
+			this.#emitQuantityChangeEvent(e.detail.value);
+			return;
+		}
+
 		// Check if changed element is a quantity input
 		const quantityInput = e.target.closest('[data-cart-quantity]');
 		if (quantityInput) {
@@ -178,11 +200,13 @@ class CartItem extends HTMLElement {
 	 */
 	#handleTransitionEnd(e) {
 		if (e.propertyName === 'height' && this.#isDestroying) {
+			console.log('handle transition End - remove()');
 			// Remove from DOM after height animation completes
 			this.remove();
-		} else if (e.propertyName === 'height' && this.#currentState === 'ready') {
+		} else if (e.propertyName === 'height' && this.#isAppearing) {
 			// Remove explicit height after appearing animation completes
 			this.style.height = '';
+			this.#isAppearing = false;
 		}
 	}
 
@@ -218,10 +242,12 @@ class CartItem extends HTMLElement {
 	}
 
 	/**
-	 * Render cart item from data using the static template
+	 * Render cart item from data using the appropriate template
 	 */
-	#renderFromData() {
-		if (!this.#itemData || !CartItem.#template) {
+	#render() {
+		console.log('cart-item - render ', this.#itemData);
+		if (!this.#itemData || CartItem.#templates.size === 0) {
+			console.log('no item data or no template', this.#itemData, CartItem.#templates);
 			return;
 		}
 
@@ -231,8 +257,17 @@ class CartItem extends HTMLElement {
 			this.setAttribute('key', key);
 		}
 
-		// Generate HTML from template
-		const templateHTML = CartItem.#template(this.#itemData);
+		// Determine which template to use
+		const templateName = this.#itemData.properties?._cartTemplate || 'default';
+		const templateFn = CartItem.#templates.get(templateName) || CartItem.#templates.get('default');
+
+		if (!templateFn) {
+			console.warn(`Cart item template '${templateName}' not found and no default template set`);
+			return;
+		}
+
+		// Generate HTML from template with both item and cart data
+		const templateHTML = templateFn(this.#itemData, this.#cartData);
 
 		// Generate processing HTML from template or use default
 		const processingHTML = CartItem.#processingTemplate
@@ -253,14 +288,48 @@ class CartItem extends HTMLElement {
 	/**
 	 * Update the cart item with new data
 	 * @param {Object} itemData - Shopify cart item data
+	 * @param {Object} cartData - Full Shopify cart object
 	 */
-	setData(itemData) {
+	setData(itemData, cartData = null) {
+		console.log('cart-item - setData', itemData);
 		this.#itemData = itemData;
-		this.#renderFromData();
+		if (cartData) {
+			this.#cartData = cartData;
+		}
+		this.#render();
 
 		// Re-find child elements after re-rendering
 		this.content = this.querySelector('cart-item-content');
 		this.processing = this.querySelector('cart-item-processing');
+
+		// Update line price elements
+		this.#updateLinePriceElements();
+	}
+
+	/**
+	 * Update elements with data-content-line-price attribute
+	 * @private
+	 */
+	#updateLinePriceElements() {
+		if (!this.#itemData) return;
+
+		const linePriceElements = this.querySelectorAll('[data-content-line-price]');
+		const formattedLinePrice = this.#formatCurrency(this.#itemData.line_price || 0);
+
+		linePriceElements.forEach((element) => {
+			element.textContent = formattedLinePrice;
+		});
+	}
+
+	/**
+	 * Format currency value from cents to dollar string
+	 * @param {number} cents - Price in cents
+	 * @returns {string} Formatted currency string (e.g., "$29.99")
+	 * @private
+	 */
+	#formatCurrency(cents) {
+		if (typeof cents !== 'number') return '$0.00';
+		return `$${(cents / 100).toFixed(2)}`;
 	}
 
 	/**
@@ -289,10 +358,14 @@ class CartItem extends HTMLElement {
 		// bail if already in the middle of a destroy cycle
 		if (this.#isDestroying) return;
 
+		console.log('cart-item: destroy Yourself');
+
 		this.#isDestroying = true;
 
 		// snapshot the current rendered height before applying any "destroying" styles
 		const initialHeight = this.offsetHeight;
+
+		console.log('initialHeight', initialHeight);
 
 		// switch to 'destroying' state so css can fade / slide visuals
 		this.setState('destroying');
@@ -300,7 +373,7 @@ class CartItem extends HTMLElement {
 		// lock the measured height on the next animation frame to ensure layout is fully flushed
 		requestAnimationFrame(() => {
 			this.style.height = `${initialHeight}px`;
-			this.offsetHeight; // force a reflow so the browser registers the fixed height
+			// this.offsetHeight; // force a reflow so the browser registers the fixed height
 
 			// read the css custom property for timing, defaulting to 400ms
 			const elementStyle = getComputedStyle(this);
@@ -309,7 +382,16 @@ class CartItem extends HTMLElement {
 
 			// animate only the height to zero; other properties stay under stylesheet control
 			this.style.transition = `height ${destroyDuration} ease`;
-			this.style.height = '0px';
+			// this.style.height = '0px';
+
+			setTimeout(() => {
+				this.style.height = '0px';
+			}, 1);
+
+			setTimeout(() => {
+				// make sure item is removed
+				this.remove();
+			}, 600);
 		});
 	}
 }
