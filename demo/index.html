@@ -316,6 +316,7 @@
 
 			// Set up template for client-side rendering
 			CartItem.setTemplate('default', (itemData, cartData) => {
+				console.log('itemData', itemData);
 				return `
           <div class="item-image"></div>
           <div class="item-details">
@@ -482,6 +483,7 @@
 					product_title: 'Templated Product',
 					variant_title: 'Generated from Template',
 					quantity: 1,
+					price: 3999, // $39.99 in cents
 					line_price: 3999, // $39.99 in cents
 					featured_image: null,
 					url: '/products/templated',
@@ -502,6 +504,7 @@
 					product_title: 'Animated Product',
 					variant_title: 'Appears with Animation',
 					quantity: 1,
+					price: 4999, // $49.99 in cents
 					line_price: 4999, // $49.99 in cents
 					featured_image: null,
 					url: '/products/animated',
