@@ -1,4 +1,4 @@
-// import QuantityModifier from '@magic-spells/quantity-modifier';
+export { default as QuantityModifier } from '@magic-spells/quantity-modifier';
 
 /**
  * CartItem class that handles the functionality of a cart item component
@@ -200,7 +200,6 @@ class CartItem extends HTMLElement {
 	 */
 	#handleTransitionEnd(e) {
 		if (e.propertyName === 'height' && this.#isDestroying) {
-			console.log('handle transition End - remove()');
 			// Remove from DOM after height animation completes
 			this.remove();
 		} else if (e.propertyName === 'height' && this.#isAppearing) {
@@ -245,7 +244,6 @@ class CartItem extends HTMLElement {
 	 * Render cart item from data using the appropriate template
 	 */
 	#render() {
-		console.log('cart-item - render ', this.#itemData);
 		if (!this.#itemData || CartItem.#templates.size === 0) {
 			console.log('no item data or no template', this.#itemData, CartItem.#templates);
 			return;
@@ -291,7 +289,6 @@ class CartItem extends HTMLElement {
 	 * @param {Object} cartData - Full Shopify cart object
 	 */
 	setData(itemData, cartData = null) {
-		console.log('cart-item - setData', itemData);
 		this.#itemData = itemData;
 		if (cartData) {
 			this.#cartData = cartData;
@@ -358,14 +355,10 @@ class CartItem extends HTMLElement {
 		// bail if already in the middle of a destroy cycle
 		if (this.#isDestroying) return;
 
-		console.log('cart-item: destroy Yourself');
-
 		this.#isDestroying = true;
 
 		// snapshot the current rendered height before applying any "destroying" styles
 		const initialHeight = this.offsetHeight;
-
-		console.log('initialHeight', initialHeight);
 
 		// switch to 'destroying' state so css can fade / slide visuals
 		this.setState('destroying');
@@ -382,11 +375,11 @@ class CartItem extends HTMLElement {
 
 			// animate only the height to zero; other properties stay under stylesheet control
 			this.style.transition = `height ${destroyDuration} ease`;
-			// this.style.height = '0px';
+			this.style.height = '0px';
 
-			setTimeout(() => {
-				this.style.height = '0px';
-			}, 1);
+			// setTimeout(() => {
+			// 	this.style.height = '0px';
+			// }, 1);
 
 			setTimeout(() => {
 				// make sure item is removed

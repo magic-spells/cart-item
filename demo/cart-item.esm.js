@@ -1,4 +1,4 @@
-// import QuantityModifier from '@magic-spells/quantity-modifier';
+export { default as QuantityModifier } from '@magic-spells/quantity-modifier';
 
 /**
  * CartItem class that handles the functionality of a cart item component
@@ -200,7 +200,6 @@ class CartItem extends HTMLElement {
 	 */
 	#handleTransitionEnd(e) {
 		if (e.propertyName === 'height' && this.#isDestroying) {
-			console.log('handle transition End - remove()');
 			// Remove from DOM after height animation completes
 			this.remove();
 		} else if (e.propertyName === 'height' && this.#isAppearing) {
@@ -245,7 +244,6 @@ class CartItem extends HTMLElement {
 	 * Render cart item from data using the appropriate template
 	 */
 	#render() {
-		console.log('cart-item - render ', this.#itemData);
 		if (!this.#itemData || CartItem.#templates.size === 0) {
 			console.log('no item data or no template', this.#itemData, CartItem.#templates);
 			return;
@@ -291,7 +289,6 @@ class CartItem extends HTMLElement {
 	 * @param {Object} cartData - Full Shopify cart object
 	 */
 	setData(itemData, cartData = null) {
-		console.log('cart-item - setData', itemData);
 		this.#itemData = itemData;
 		if (cartData) {
 			this.#cartData = cartData;
@@ -369,7 +366,7 @@ class CartItem extends HTMLElement {
 		// lock the measured height on the next animation frame to ensure layout is fully flushed
 		requestAnimationFrame(() => {
 			this.style.height = `${initialHeight}px`;
-			this.offsetHeight; // force a reflow so the browser registers the fixed height
+			// this.offsetHeight; // force a reflow so the browser registers the fixed height
 
 			// read the css custom property for timing, defaulting to 400ms
 			const elementStyle = getComputedStyle(this);
@@ -379,6 +376,15 @@ class CartItem extends HTMLElement {
 			// animate only the height to zero; other properties stay under stylesheet control
 			this.style.transition = `height ${destroyDuration} ease`;
 			this.style.height = '0px';
+
+			// setTimeout(() => {
+			// 	this.style.height = '0px';
+			// }, 1);
+
+			setTimeout(() => {
+				// make sure item is removed
+				this.remove();
+			}, 600);
 		});
 	}
 }
