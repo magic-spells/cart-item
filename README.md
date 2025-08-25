@@ -11,7 +11,8 @@ A professional, highly-customizable Web Component for creating smooth cart item 
 - 🎯 **Modern 3-dot loader** - Sleek bouncing animation replaces outdated spinners
 - 🎛️ **16+ CSS custom properties** - Complete visual customization
 - 📡 **Event-driven architecture** - Clean separation between UI and logic
-- 🔧 **Zero dependencies** - Pure Web Components
+- 🎲 **Quantity modifier integration** - Built-in support for @magic-spells/quantity-modifier
+- 🔧 **Minimal dependencies** - Only includes quantity-modifier for enhanced UX
 - ⚡ **Lightweight and performant** - Optimized animations and memory management
 - 📱 **Framework agnostic** - Pure Web Components work with any framework
 - 🛒 **Shopify-ready** - Designed for real-world e-commerce applications
@@ -24,7 +25,7 @@ npm install @magic-spells/cart-item
 ```
 
 ```javascript
-// Import the component
+// Import the component (includes quantity-modifier automatically)
 import '@magic-spells/cart-item';
 import '@magic-spells/cart-item/css/min'; // Include styles
 ```
@@ -51,11 +52,11 @@ Or include directly in your HTML:
 			<div class="price">$29.99</div>
 			<div class="quantity">
 				<label>Qty:</label>
-				<input type="number" data-cart-quantity value="1" min="1" />
+				<quantity-modifier value="1" min="1" max="99"></quantity-modifier>
 			</div>
 		</div>
 		<div class="actions">
-			<button data-action-remove>Remove</button>
+			<button data-action-remove-item>Remove</button>
 			<div class="total">$29.99</div>
 		</div>
 	</cart-item-content>
@@ -80,11 +81,11 @@ CartItem.setTemplate((item) => {
       <div class="price">$${(item.line_price / 100).toFixed(2)}</div>
       <div class="quantity">
         <label>Qty:</label>
-        <input type="number" data-cart-quantity value="${item.quantity}" min="1">
+        <quantity-modifier value="${item.quantity}" min="1" max="99"></quantity-modifier>
       </div>
     </div>
     <div class="actions">
-      <button data-action-remove>Remove</button>
+      <button data-action-remove-item>Remove</button>
       <div class="total">$${((item.line_price * item.quantity) / 100).toFixed(2)}</div>
     </div>
   `;
@@ -134,12 +135,35 @@ The component emits events that bubble up to parent components (like `cart-panel
 | `<cart-item-content>`    | Content area (product info, buttons) - auto-generated when using templates     | Yes      |
 | `<cart-item-processing>` | Processing overlay (modern 3-dot loader) - auto-generated when using templates | No       |
 
+### Quantity Inputs
+
+Cart items support two types of quantity controls that both trigger the same `cart-item:quantity-change` event:
+
+1. **Traditional input**: `<input data-cart-quantity>` - Standard HTML number input
+2. **Quantity modifier**: `<quantity-modifier>` - Enhanced component with increment/decrement buttons
+
+The quantity-modifier component provides better UX with:
+
+- Increment/decrement buttons for easier mobile interaction
+- Built-in min/max validation
+- Consistent styling and behavior
+- No browser spin buttons (automatically hidden)
+
 ### Interactive Elements
 
-| Selector               | Description          | Event Triggered             |
-| ---------------------- | -------------------- | --------------------------- |
-| `[data-action-remove]` | Remove button        | `cart-item:remove`          |
-| `[data-cart-quantity]` | Quantity input field | `cart-item:quantity-change` |
+| Selector                    | Description                 | Event Triggered             |
+| --------------------------- | --------------------------- | --------------------------- |
+| `[data-action-remove-item]` | Remove button               | `cart-item:remove`          |
+| `[data-cart-quantity]`      | Quantity input field        | `cart-item:quantity-change` |
+| `<quantity-modifier>`       | Quantity modifier component | `cart-item:quantity-change` |
+
+### Data Content Elements
+
+| Selector                    | Description                   | Auto-Updated |
+| --------------------------- | ----------------------------- | ------------ |
+| `[data-content-line-price]` | Line total (quantity × price) | Yes          |
+
+These elements are automatically updated when cart data changes via `setData()` method.
 
 Example:
 
@@ -148,7 +172,9 @@ Example:
 <cart-item key="item-123">
 	<cart-item-content>
 		<h4>Product Name</h4>
-		<button data-action-remove>Remove</button>
+		<quantity-modifier value="1" min="1" max="99"></quantity-modifier>
+		<button data-action-remove-item>Remove</button>
+		<div data-content-line-price>$29.99</div>
 	</cart-item-content>
 </cart-item>
 
@@ -167,8 +193,9 @@ Example:
 	CartItem.setTemplate(
 		(item) => `
     <h4>${item.product_title}</h4>
-    <input data-cart-quantity value="${item.quantity}">
-    <button data-action-remove>Remove</button>
+    <quantity-modifier value="${item.quantity}" min="1" max="99"></quantity-modifier>
+    <button data-action-remove-item>Remove</button>
+    <div data-content-line-price>$${(item.line_price / 100).toFixed(2)}</div>
   `
 	);
 
@@ -311,6 +338,7 @@ The component emits custom events that bubble up for parent components to handle
 **`cart-item:quantity-change`**
 
 - Triggered when a quantity input (`[data-cart-quantity]`) value changes
+- Also triggered when a quantity-modifier component (`<quantity-modifier>`) value changes
 - `event.detail`: `{ cartKey, quantity, element }`
 - Works with both pre-rendered and template-based items
 
@@ -323,7 +351,7 @@ CartItem.setTemplate((item) => {
     <div class="product-info">
       <h4>${item.product_title}</h4>
       <input data-cart-quantity value="${item.quantity}">
-      <button data-action-remove>Remove</button>
+      <button data-action-remove-item>Remove</button>
     </div>
   `;
 });
@@ -409,10 +437,10 @@ class CartPanel {
         <div class="product-details">
           <h4>${item.product_title}</h4>
           <p>${item.variant_title || ''}</p>
-          <input type="number" data-cart-quantity value="${item.quantity}" min="1">
+          <quantity-modifier value="${item.quantity}" min="1" max="99"></quantity-modifier>
         </div>
         <div class="product-actions">
-          <button data-action-remove>Remove</button>
+          <button data-action-remove-item>Remove</button>
           <span>$${(item.line_price / 100).toFixed(2)}</span>
         </div>
       `;
@@ -488,8 +516,8 @@ class SimpleCartManager {
 			return `
         <div class="item-info">
           <h4>${item.product_title}</h4>
-          <input type="number" data-cart-quantity value="${item.quantity}" min="1">
-          <button data-action-remove>Remove</button>
+          <quantity-modifier value="${item.quantity}" min="1" max="99"></quantity-modifier>
+          <button data-action-remove-item>Remove</button>
           <span>$${((item.line_price * item.quantity) / 100).toFixed(2)}</span>
         </div>
       `;

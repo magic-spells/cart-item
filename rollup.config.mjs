@@ -7,6 +7,9 @@ import postcss from 'rollup-plugin-postcss';
 const dev = process.env.ROLLUP_WATCH;
 const name = 'cart-item';
 
+// External dependencies that should not be bundled in ESM/CJS builds
+const external = ['@magic-spells/quantity-modifier'];
+
 // Shared CSS/SCSS plugin config
 const cssPlugin = postcss({
 	extract: `${name}.css`,
@@ -34,6 +37,7 @@ export default [
 	// ESM build
 	{
 		input: 'src/cart-item.js',
+		external,
 		output: {
 			file: `dist/${name}.esm.js`,
 			format: 'es',
@@ -44,6 +48,7 @@ export default [
 	// CommonJS build
 	{
 		input: 'src/cart-item.js',
+		external,
 		output: {
 			file: `dist/${name}.cjs.js`,
 			format: 'cjs',
@@ -88,6 +93,7 @@ export default [
 		? [
 				{
 					input: 'src/cart-item.js',
+					external,
 					output: {
 						file: `dist/${name}.esm.js`,
 						format: 'es',
@@ -113,6 +119,10 @@ export default [
 								},
 								{
 									src: `dist/${name}.min.css`,
+									dest: 'demo',
+								},
+								{
+									src: 'node_modules/@magic-spells/quantity-modifier/dist/quantity-modifier.esm.js',
 									dest: 'demo',
 								},
 							],

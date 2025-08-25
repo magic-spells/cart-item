@@ -94,6 +94,50 @@
 				text-align: center;
 			}
 
+			/* Quantity modifier styling */
+			quantity-modifier {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.25rem;
+				border: 1px solid #ced4da;
+				border-radius: 4px;
+				background: white;
+			}
+
+			quantity-modifier button {
+				border: none;
+				background: transparent;
+				padding: 0.25rem;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 24px;
+				height: 24px;
+			}
+
+			quantity-modifier button:hover {
+				background: #f8f9fa;
+			}
+
+			quantity-modifier button svg {
+				width: 12px;
+				height: 12px;
+				color: #6c757d;
+			}
+
+			quantity-modifier input {
+				border: none;
+				text-align: center;
+				width: 40px;
+				padding: 0.25rem;
+				font-size: 0.9rem;
+			}
+
+			quantity-modifier input:focus {
+				outline: none;
+			}
+
 			.item-actions {
 				display: flex;
 				flex-direction: column;
@@ -187,6 +231,9 @@
 			<button onclick="addAnimatedItem()" style="background: #17a2b8; border-color: #17a2b8">
 				Add Item (With Animation)
 			</button>
+			<button onclick="testLinePriceUpdate()" style="background: #fd7e14; border-color: #fd7e14">
+				Test Line Price Update
+			</button>
 		</div>
 
 		<div class="cart-container">
@@ -200,12 +247,12 @@
 						<div class="item-price">$29.99 each</div>
 						<div class="item-quantity">
 							<span class="quantity-label">Qty:</span>
-							<input type="number" class="quantity-input" data-cart-quantity value="1" min="1" />
+							<quantity-modifier value="1" min="1" max="99"></quantity-modifier>
 						</div>
 					</div>
 					<div class="item-actions">
 						<button class="remove-btn" data-action-remove-item>Remove</button>
-						<div class="item-total">$29.99</div>
+						<div class="item-total" data-content-line-price>$29.99</div>
 					</div>
 				</cart-item-content>
 				<cart-item-processing>
@@ -221,12 +268,12 @@
 						<div class="item-price">$59.99 each</div>
 						<div class="item-quantity">
 							<span class="quantity-label">Qty:</span>
-							<input type="number" class="quantity-input" data-cart-quantity value="2" min="1" />
+							<quantity-modifier value="2" min="1" max="99"></quantity-modifier>
 						</div>
 					</div>
 					<div class="item-actions">
 						<button class="remove-btn" data-action-remove-item>Remove</button>
-						<div class="item-total">$119.98</div>
+						<div class="item-total" data-content-line-price>$119.98</div>
 					</div>
 				</cart-item-content>
 				<cart-item-processing>
@@ -242,12 +289,12 @@
 						<div class="item-price">$79.99 each</div>
 						<div class="item-quantity">
 							<span class="quantity-label">Qty:</span>
-							<input type="number" class="quantity-input" data-cart-quantity value="1" min="1" />
+							<quantity-modifier value="1" min="1" max="99"></quantity-modifier>
 						</div>
 					</div>
 					<div class="item-actions">
 						<button class="remove-btn" data-action-remove-item>Remove</button>
-						<div class="item-total">$79.99</div>
+						<div class="item-total" data-content-line-price>$79.99</div>
 					</div>
 				</cart-item-content>
 				<cart-item-processing>
@@ -256,25 +303,33 @@
 			</cart-item>
 		</div>
 
+		<script type="importmap">
+			{
+				"imports": {
+					"@magic-spells/quantity-modifier": "./quantity-modifier.esm.js"
+				}
+			}
+		</script>
 		<script type="module" src="cart-item.esm.js"></script>
 		<script type="module">
 			import { CartItem } from './cart-item.esm.js';
 
 			// Set up template for client-side rendering
-			CartItem.setTemplate((item) => {
+			CartItem.setTemplate('default', (itemData, cartData) => {
+				console.log('itemData', itemData);
 				return `
           <div class="item-image"></div>
           <div class="item-details">
-            <h4 class="item-name">${item.product_title}</h4>
-            <div class="item-price">$${(item.line_price / 100).toFixed(2)} each</div>
+            <h4 class="item-name">${itemData.product_title}</h4>
+            <div class="item-price">$${(itemData.price / 100).toFixed(2)} each</div>
             <div class="item-quantity">
               <span class="quantity-label">Qty:</span>
-              <input type="number" class="quantity-input" data-cart-quantity value="${item.quantity}" min="1" />
+              <quantity-modifier value="${itemData.quantity}" min="1" max="99"></quantity-modifier>
             </div>
           </div>
           <div class="item-actions">
             <button class="remove-btn" data-action-remove-item>Remove</button>
-            <div class="item-total">$${((item.line_price * item.quantity) / 100).toFixed(2)}</div>
+            <div class="item-total" data-content-line-price>$${(itemData.line_price / 100).toFixed(2)}</div>
           </div>
         `;
 			});
@@ -400,7 +455,7 @@
                   <div class="item-price">${itemData.price}</div>
                   <div class="item-quantity">
                     <span class="quantity-label">Qty:</span>
-                    <input type="number" class="quantity-input" data-cart-quantity value="${itemData.quantity}" min="1" />
+                    <quantity-modifier value="${itemData.quantity}" min="1" max="99"></quantity-modifier>
                   </div>
                 </div>
                 <div class="item-actions">
@@ -428,6 +483,7 @@
 					product_title: 'Templated Product',
 					variant_title: 'Generated from Template',
 					quantity: 1,
+					price: 3999, // $39.99 in cents
 					line_price: 3999, // $39.99 in cents
 					featured_image: null,
 					url: '/products/templated',
@@ -448,6 +504,7 @@
 					product_title: 'Animated Product',
 					variant_title: 'Appears with Animation',
 					quantity: 1,
+					price: 4999, // $49.99 in cents
 					line_price: 4999, // $49.99 in cents
 					featured_image: null,
 					url: '/products/animated',
@@ -456,6 +513,29 @@
 				const cartContainer = document.querySelector('.cart-container');
 				const newItem = CartItem.createAnimated(sampleData);
 				cartContainer.appendChild(newItem);
+			}
+
+			// Function to test line price updating
+			function testLinePriceUpdate() {
+				console.log('🎭 Demo: Testing line price updates');
+
+				const items = document.querySelectorAll('cart-item');
+				items.forEach((item, index) => {
+					// Simulate updated cart data with new line prices
+					const newData = {
+						key: item.getAttribute('key'),
+						id: item.getAttribute('key'),
+						product_title: `Updated Product ${index + 1}`,
+						quantity: index + 2, // Different quantities
+						line_price: (index + 1) * 3999, // Different line prices: $39.99, $79.98, $119.97
+						price: 3999, // Individual price stays the same
+					};
+
+					console.log(
+						`Updating item ${item.getAttribute('key')} with new line price: $${(newData.line_price / 100).toFixed(2)}`
+					);
+					item.setData(newData);
+				});
 			}
 		</script>
 	</body>
