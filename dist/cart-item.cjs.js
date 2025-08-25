@@ -258,7 +258,7 @@ class CartItem extends HTMLElement {
 		}
 
 		// Determine which template to use
-		const templateName = this.#itemData.properties?._cartTemplate || 'default';
+		const templateName = this.#itemData.properties?._cart_template || 'default';
 		const templateFn = CartItem.#templates.get(templateName) || CartItem.#templates.get('default');
 
 		if (!templateFn) {
