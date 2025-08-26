@@ -15,6 +15,7 @@ class CartItem extends HTMLElement {
 	#handlers = {};
 	#itemData = null;
 	#cartData = null;
+	#lastRenderedHTML = '';
 
 	/**
 	 * Set the template function for rendering cart items
@@ -255,17 +256,9 @@ class CartItem extends HTMLElement {
 			this.setAttribute('key', key);
 		}
 
-		// Determine which template to use
-		const templateName = this.#itemData.properties?._cart_template || 'default';
-		const templateFn = CartItem.#templates.get(templateName) || CartItem.#templates.get('default');
-
-		if (!templateFn) {
-			console.warn(`Cart item template '${templateName}' not found and no default template set`);
-			return;
-		}
-
-		// Generate HTML from template with both item and cart data
-		const templateHTML = templateFn(this.#itemData, this.#cartData);
+		// Generate HTML from template and store for future comparisons
+		const templateHTML = this.#generateTemplateHTML();
+		this.#lastRenderedHTML = templateHTML;
 
 		// Generate processing HTML from template or use default
 		const processingHTML = CartItem.#processingTemplate
@@ -289,18 +282,55 @@ class CartItem extends HTMLElement {
 	 * @param {Object} cartData - Full Shopify cart object
 	 */
 	setData(itemData, cartData = null) {
+		// Update internal data
 		this.#itemData = itemData;
 		if (cartData) {
 			this.#cartData = cartData;
 		}
-		this.#render();
 
+		// Generate new HTML with updated data
+		const newHTML = this.#generateTemplateHTML();
+		
+		// Compare with previously rendered HTML
+		if (newHTML === this.#lastRenderedHTML) {
+			// HTML hasn't changed, just reset processing state
+			this.setState('ready');
+			return;
+		}
+		
+		// HTML is different, proceed with full update
+		this.setState('ready');
+		this.#render();
+		
 		// Re-find child elements after re-rendering
 		this.content = this.querySelector('cart-item-content');
 		this.processing = this.querySelector('cart-item-processing');
-
+		
 		// Update line price elements
 		this.#updateLinePriceElements();
+	}
+
+	/**
+	 * Generate HTML from the current template with current data
+	 * @returns {string} Generated HTML string or empty string if no template
+	 * @private
+	 */
+	#generateTemplateHTML() {
+		// If no templates are available, return empty string
+		if (!this.#itemData || CartItem.#templates.size === 0) {
+			return '';
+		}
+
+		// Determine which template to use
+		const templateName = this.#itemData.properties?._cart_template || 'default';
+		const templateFn = CartItem.#templates.get(templateName) || CartItem.#templates.get('default');
+
+		if (!templateFn) {
+			return '';
+		}
+
+		// Generate and return HTML from template
+		return templateFn(this.#itemData, this.#cartData);
 	}
 
 	/**
